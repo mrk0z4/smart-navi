@@ -39,6 +39,8 @@ import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.restlet.Component;
 import org.restlet.data.Protocol;
 import org.restlet.engine.Engine;
@@ -59,7 +61,9 @@ import smartnavi.markargus.com.smartnavi.location.LocationService;
 import smartnavi.markargus.com.smartnavi.models.Distance;
 import smartnavi.markargus.com.smartnavi.models.Route;
 import smartnavi.markargus.com.smartnavi.rest.Server;
+import smartnavi.markargus.com.smartnavi.util.BeaconPlaceManager;
 import smartnavi.markargus.com.smartnavi.util.ModelServer;
+import smartnavi.markargus.com.smartnavi.util.TDBAPI;
 
 
 public class PortalActivity extends Activity
@@ -86,12 +90,14 @@ public class PortalActivity extends Activity
     private String mDeviceAddress;
     private String mDeviceName;
     private boolean readRssi;
+    private String mDevicePlace;
 
     private NsdManager.DiscoveryListener mDiscoveryListener;
     private NsdManager.ResolveListener mResolveListener;
     private NsdServiceInfo mService;
     private NsdManager mNsdManager;
     private final static String SERVICE_TYPE = "_openthings._tcp";
+    private final static String SERVICE_NAME = "TDBServer";
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -132,10 +138,12 @@ public class PortalActivity extends Activity
         }
     };
     private ModelServer modelServer;
+    private TDBAPI tdbapi;
     private Component component;
     private NsdManager.RegistrationListener mRegistrationListener;
     private String mServiceName;
     private BeaconManager beaconManager;
+    private BeaconPlaceManager beaconPlaceManager;
 
     @Override
     protected void onDestroy() {
@@ -208,6 +216,10 @@ public class PortalActivity extends Activity
         // Sets the name of the device inside ModelServer.
         modelServer = ModelServer.getInstance();
         modelServer.setDeviceName(getDeviceName());
+
+        tdbapi = TDBAPI.getInstance();
+
+        beaconPlaceManager = new BeaconPlaceManager();
 
         if (!getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -370,7 +382,7 @@ public class PortalActivity extends Activity
 
             @Override
             public void didDetermineStateForRegion(int state, Region region) {
-                Log.i(TAG, "I have just switched from seeing/not seeing beacons: "+state);
+                Log.i(TAG, "I have just switched from seeing/not seeing beacons: " + state);
             }
         });
 
@@ -583,6 +595,11 @@ public class PortalActivity extends Activity
                     message += entry.getKey().getName() + ", relation: " + entry.getValue() + "\n";
             }
             currentFragment.setText(message);
+
+            beaconPlaceManager.addBeacon(actualLocationDevice.getName());
+
+            if(tdbapi.isConnected())
+                new GetPlaceTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, actualLocationDevice.getName());
         }
     }
 
@@ -697,7 +714,7 @@ public class PortalActivity extends Activity
                     // The name of the service tells the user what they'd be
                     // connecting to. It could be "Bob's Chat App".
                     Log.d(TAG, "Same machine: " + "");
-                } else if (service.getServiceName().contains("context")){
+                } else if (service.getServiceName().contains(SERVICE_NAME)){
                     mNsdManager.resolveService(service, mResolveListener);
                 }
             }
@@ -743,7 +760,7 @@ public class PortalActivity extends Activity
                 int port = mService.getPort();
                 InetAddress host = mService.getHost();
 
-                modelServer.setServerAddress(host.getHostAddress(), port);
+                tdbapi.setServerAddress(host.getHostAddress(), port);
 
 //                Action response = modelServer.getAction();
 //                if (response != null) {
@@ -869,6 +886,35 @@ public class PortalActivity extends Activity
         }
 
         protected void onPostExecute(Long result) {}
+
+    }
+
+    public class GetPlaceTask extends AsyncTask<String, Integer, Long> {
+
+        private JSONObject response = null;
+        private String beaconId;
+        private String virtualAmbientId = null;
+
+        @Override
+        protected void onPreExecute(){}
+
+        @Override
+        protected Long doInBackground(String... arg0) {
+            beaconId = arg0[0];
+            if(!beaconPlaceManager.beaconHasPlace(beaconId)) {
+                response = tdbapi.getPlace(beaconId);
+                try {
+                    virtualAmbientId = response.getString("virtual-ambient-id");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        protected void onPostExecute(Long result) {
+            beaconPlaceManager.addBeaconPlaceRelation(beaconId, virtualAmbientId);
+        }
 
     }
 
