@@ -1,2 +1,2 @@
-# smart-navi
+# Smart-Navi
 Smart Navi Android project.
