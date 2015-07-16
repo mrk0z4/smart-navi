@@ -774,13 +774,6 @@ public class PortalActivity extends Activity
         };
     }
 
-    public void testServer(){
-        if(modelServer != null){
-            modelServer.getOrderedRoute();
-            Log.i("testServer", "Testing successful.");
-        }
-    }
-
     private void startServer(){
         try {
             Log.i("Server", "Initializing Android HTTP server...");
