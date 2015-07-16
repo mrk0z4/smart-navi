@@ -2,5 +2,14 @@
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"
         android:orderInCategory="100"
+        android:showAsAction="never"
+        android:visible="false"/>
+    <item android:id="@+id/action_set_to_intimate_close_phase"
+        android:title="-> Intimate Close"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+    <item android:id="@+id/action_set_to_intimate_far_phase"
+        android:title="-> Intimate Far"
+        android:orderInCategory="100"
         android:showAsAction="never" />
 </menu>

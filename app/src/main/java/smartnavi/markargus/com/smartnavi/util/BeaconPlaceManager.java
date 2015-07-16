@@ -9,10 +9,6 @@ public class BeaconPlaceManager {
 
     private HashMap<String, String> beaconPlaceMap;
 
-    public BeaconPlaceManager(HashMap<String, String> beaconPlaceMap) {
-        this.beaconPlaceMap = beaconPlaceMap;
-    }
-
     public BeaconPlaceManager() {
         beaconPlaceMap = new HashMap<String, String>();
     }
@@ -39,7 +35,7 @@ public class BeaconPlaceManager {
 
     public boolean beaconHasPlace(String beaconId) {
         if(beaconPlaceMap.containsKey(beaconId)) {
-            if(beaconPlaceMap.get(beaconId).isEmpty()){
+            if(beaconPlaceMap.get(beaconId) != null && beaconPlaceMap.get(beaconId).isEmpty()){
                 return false;
             }
             else {

@@ -1,8 +1,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".PortalActivity" >
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
+    <item android:id="@+id/action_set_to_intimate_close_phase"
+        android:title="To Intimate Close"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+    <item android:id="@+id/action_set_to_intimate_far_phase"
+        android:title="To Intimate Far"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+    <item android:id="@+id/action_set_beacon"
+        android:title="Establish Location Beacon"
         android:orderInCategory="100"
         android:showAsAction="never" />
 </menu>
